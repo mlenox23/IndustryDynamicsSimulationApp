@@ -199,11 +199,9 @@ void parameterize()
  	if (K>N) K=N;
 }
 
-// have another version of samee method for a2 b2
 void seed_landscape()
 {
-    // initialize landscape. Call this twice. 
-    // will a1 a2 b1 b2 - 2 landscapes
+    // updates a1,b1 - coefficients
     int i,j,h,temp,stack[100];
 	int combos = pow(2,K);
     // stack 
@@ -235,8 +233,7 @@ void seed_landscape()
 
 void seed_landscape_new_tech()
 {
-    // initialize landscape. Call this twice. 
-    // will a1 a2 b1 b2 - 2 landscapes
+    // updates a2, b2
     int i,j,h,temp,stack[100];
 	int combos = pow(2,K);
     // stack 
@@ -598,12 +595,12 @@ void parseInput(char input[]){
                     //printf("\nruleParams after = %f\n", rule_pram);
                 }
         }
-        if (strstr(data2[0], "fudgeFactorStart") != NULL){
+        if (strstr(data2[0], "fudgeFactorStart") != NULL){ // percentage improvement on using new tech
                 if (data2[1][0] != '\0'){
                     fudgeFactorStart = atof(data2[1]);
                 }
         }
-        if (strstr(data2[0], "fudgeFactorEnd") != NULL){
+        if (strstr(data2[0], "fudgeFactorEnd") != NULL){// percentage improvement on using new tech
                 if (data2[1][0] != '\0'){
                     fudgeFactorEnd = atof(data2[1]);
                 }
@@ -738,7 +735,7 @@ int main(int argc, char *argv[])
 		        };
             }
             new_tech_perc = ((num_new_tech * 1.0 )/num_entrants);
-            printf("new_tech_perc = %4.3f", new_tech_perc);
+            //rintf("new_tech_perc = %4.3f", new_tech_perc);
 		    update();	/* update players positions */
 
             // "run   time   Entrants   Price   Total_Output   Avg_Output   Min_Output   Max_Output   Avg_MCosts   Min_MCosts   Max_MCosts   Avg_Profits   Min_Profits   Max_Profits   Avg_Rule" (price_per_time/players)

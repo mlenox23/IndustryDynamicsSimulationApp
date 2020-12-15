@@ -164,9 +164,12 @@ class DownloadFile(TemplateView):
 
 class Display(TemplateView):
     def get(self, request):
-        s3 = boto3.resource('s3')
+        ACCESS_KEY = ""
+        SECRET_KEY = ""
+        s3 = boto3.resource('s3', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
         date_files = {}
-        s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+        #s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+        s3_client = boto3.client('s3', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
         bucket = s3.Bucket('dardendifferentialmodeloutput')
         bucket_stats = s3.Bucket('nk-cournot-stats')
         file = []
@@ -187,29 +190,17 @@ class Display(TemplateView):
             file.append(temp)
 
         result = {'output': file}
-
-        '''
-
-        for obj in bucket.objects.all():
-            key = obj.key
-            temp = []
-            temp.append(key)
-            file.append(temp)
-
-        stat_files = []
-        for obj in bucket_stats.objects.all():
-            key = obj.key
-            temp = [key]
-            stat_files.append(temp)
-        result = {'output': file, 'stats': stat_files}'''
         return render(request, 'display.html', result)
 
     def post(self, request):
         print(request.POST['file_id'])
         file_val = request.POST['file_id'].strip('[]').strip("'")
         print(file_val)
-        s3 = boto3.client('s3')
-        s3_res = boto3.resource('s3')
+
+        ACCESS_KEY = ""
+        SECRET_KEY = ""
+        s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
+        s3_res = boto3.resource('s3', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
         s3_res.meta.client.meta.events.register('choose-signer.s3.*', disable_signing)
 
         file_vals = file_val.split('/')
@@ -229,30 +220,49 @@ class Display(TemplateView):
                 response = None
                 if 'StatsDownload' in request.POST:
                     print("downloading the statistics file: " + stats_file_val)
+                    '''
+                    s3_res.meta.client.download_file('nk-cournot-stats', stats_file_val,
+                                                     os.path.join(os.curdir, "Michael_Darden", "output",
+                                                                  os.path.basename(stats_file_val)))'''
                     s3_res.meta.client.download_file('nk-cournot-stats', stats_file_val,
                                                      os.path.join(os.curdir, "output",
                                                                   os.path.basename(stats_file_val)))
+                    #content = open(os.path.join(os.curdir, "Michael_Darden", "output", os.path.basename(stats_file_val)), "rb")
                     content = open(os.path.join(os.curdir, "output", os.path.basename(stats_file_val)), "rb")
                     response = FileResponse(content)
                     # Auto detection doesn't work with plain text content, so we set the headers ourselves
                     response["Content-Type"] = "text/plain"
                     response["Content-Disposition"] = 'attachment; filename="' + stats_file_val + '"'
                 else:
+                    print("downloading the output file: " + file_name)
+                    '''
+                    s3_res.meta.client.download_file('dardendifferentialmodeloutput', file_val,
+                                                     os.path.join(os.curdir, "Michael_Darden", "output", os.path.basename(file_name)))
+                    '''
                     s3_res.meta.client.download_file('dardendifferentialmodeloutput', file_val,
                                                      os.path.join(os.curdir, "output", os.path.basename(file_name)))
+                    #content = open(os.path.join(os.curdir, "Michael_Darden", "output", os.path.basename(file_name)), "rb")
                     content = open(os.path.join(os.curdir, "output", os.path.basename(file_name)), "rb")
                     response = FileResponse(content)
                     # Auto detection doesn't work with plain text content, so we set the headers ourselves
                     response["Content-Type"] = "text/plain"
                     response["Content-Disposition"] = 'attachment; filename="' + file_val + '"'
 
+                '''
+                if os.path.exists(os.path.join(os.curdir, "Michael_Darden", "output", os.path.basename(file_name))):
+                    print("removing file " + os.path.join(os.curdir, "Michael_Darden", "output",
+                                                          os.path.basename(file_name)) + " locally")
+                    os.remove(os.path.join(os.curdir, "Michael_Darden", "output", os.path.basename(file_name)))
+                if os.path.exists(os.path.join(os.curdir, "Michael_Darden", "output", os.path.basename(stats_file_val))):
+                    os.remove(os.path.join(os.curdir, "Michael_Darden", "output", os.path.basename(stats_file_val)))
+                '''
+                
                 if os.path.exists(os.path.join(os.curdir, "output", os.path.basename(file_name))):
                     print("removing file " + os.path.join(os.curdir, "output",
                                                           os.path.basename(file_name)) + " locally")
                     os.remove(os.path.join(os.curdir, "output", os.path.basename(file_name)))
                 if os.path.exists(os.path.join(os.curdir, "output", os.path.basename(stats_file_val))):
                     os.remove(os.path.join(os.curdir, "output", os.path.basename(stats_file_val)))
-
                 return response
 
         except botocore.exceptions.ClientError as e:

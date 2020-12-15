@@ -119,3 +119,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+AWS_S3_REGION_NAME = "us-east-1"
+
+AWS_ACCESS_KEY_ID = ""
+
+AWS_SECRET_ACCESS_KEY = ""
+
+

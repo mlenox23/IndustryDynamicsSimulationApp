@@ -17,6 +17,7 @@ from botocore import UNSIGNED
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from datetime import datetime
+import ebdjango.settings as settings
 
 
 def upload_file(file_name, bucket, object_name=None):
@@ -32,11 +33,20 @@ def upload_file(file_name, bucket, object_name=None):
     if object_name is None:
         object_name = file_name
 
+    ACCESS_KEY = ""
+    SECRET_KEY = ""
     # Upload the file
-    s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
-    
+    # signature_version=UNSIGNED, 
+    # s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+    s3_client = boto3.client('s3', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
+    # s3_client = boto3.client('s3', config=Config(region_name = settings.AWS_S3_REGION_NAME, aws_access_key_id=settings.AWS_ACCESS_KEY_ID, aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY))
     try:
+        print("uploading " + str(file_name))
         response = s3_client.upload_file(file_name, bucket, object_name)
+
+        s3 = boto3.resource('s3', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
+        object_acl = s3.ObjectAcl(bucket,object_name)
+        response = object_acl.put(ACL='public-read')
     except ClientError as e:
         logging.error(e)
         return False
